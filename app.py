@@ -9,7 +9,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-from utils import clean_text
 
 # ================== PAGE CONFIG ==================
 st.set_page_config(page_title="AI Depression Detection", layout="wide")
@@ -254,3 +253,4 @@ with right_col:
 
 st.markdown("---")
 st.caption("🎓 FYP – AI-Based Depression Detection | Click to expand report details")
+
