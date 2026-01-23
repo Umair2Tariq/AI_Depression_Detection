@@ -32,6 +32,21 @@ body { background-color: #121212; color: #E0E0E0; }
 </style>
 """, unsafe_allow_html=True)
 
+# ----------- ADD THIS FUNCTION HERE -----------
+def clean_text(text):
+    if not isinstance(text, str):
+        return ""
+    text = text.lower()
+    # Remove URLs
+    text = re.sub(r'http\S+|www\S+|https\S+', '', text, flags=re.MULTILINE)
+    # Remove user @ references and '#' from hashtags
+    text = re.sub(r'\@\w+|\#','', text)
+    # Remove punctuations
+    text = re.sub(r'[^\w\s]', '', text)
+    # Remove extra whitespace
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
 # ================== HELPERS ==================
 def highlight_words(text, words):
     for w in words:
@@ -253,4 +268,5 @@ with right_col:
 
 st.markdown("---")
 st.caption("🎓 FYP – AI-Based Depression Detection | Click to expand report details")
+
 
