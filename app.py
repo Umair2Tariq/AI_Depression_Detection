@@ -28,7 +28,7 @@ st.markdown("""
 
 /* ===== Headings ===== */
 h1, h2, h3, h4 {
-    color: #0f172a;
+    color: #90D5FF;
     font-weight: 600;
 }
 
@@ -381,6 +381,7 @@ with right_col:
 
 st.markdown("---")
 st.caption("🎓 FYP – AI-Based Depression Detection | Click to expand report details")
+
 
 
 
