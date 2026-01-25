@@ -9,6 +9,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+from utils import clean_text
 
 # ================== PAGE CONFIG ==================
 st.set_page_config(page_title="AI Depression Detection", layout="wide")
@@ -18,147 +19,19 @@ REPORT_FILE = "reports.json"
 # ================== CSS ==================
 st.markdown("""
 <style>
-
-/* ===== Global App Background ===== */
-.stApp {
-    background: linear-gradient(135deg, #f4f7fb, #eef2f7);
-    font-family: 'Segoe UI', sans-serif;
-    color: #1f2937;
-}
-
-/* ===== Headings ===== */
-h1, h2, h3, h4 {
-    color: #90D5FF;
-    font-weight: 600;
-}
-
-/* ===== Text Area ===== */
-.stTextArea textarea {
-    background-color: #ffffff;
-    color: #111827;
-    border-radius: 10px;
-    border: 1px solid #d1d5db;
-    padding: 12px;
-    font-size: 15px;
-}
-
-/* ===== Buttons ===== */
-.stButton > button {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 10px 20px;
-    font-size: 15px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.stButton > button:hover {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(37, 99, 235, 0.35);
-}
-
-/* ===== Cards ===== */
-.report-card {
-    background: #ffffff;
-    border-radius: 14px;
-    padding: 16px 20px;
-    margin-bottom: 12px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-    border-left: 5px solid #3b82f6;
-}
-
-/* ===== Highlighted Text ===== */
-.highlight {
-    background-color: #fee2e2;
-    color: #b91c1c;
-    border-radius: 5px;
-    padding: 2px 6px;
-    font-weight: 500;
-}
-
-/* ===== Progress Bar ===== */
-.progress-bar {
-    background-color: #e5e7eb;
-    border-radius: 10px;
-    height: 14px;
-    margin-top: 6px;
-    overflow: hidden;
-}
-
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #22c55e, #16a34a);
-    border-radius: 10px;
-    transition: width 0.6s ease;
-}
-
-/* ===== Skeleton Loader ===== */
-.skeleton-cell {
-    height: 16px;
-    margin: 6px 0;
-    background: linear-gradient(
-        90deg,
-        #e5e7eb 25%,
-        #f3f4f6 37%,
-        #e5e7eb 63%
-    );
-    background-size: 400% 100%;
-    animation: shimmer 1.8s infinite;
-    border-radius: 6px;
-}
-
-@keyframes shimmer {
-    0% { background-position: 100% 0; }
-    100% { background-position: -100% 0; }
-}
-
-/* ===== Expander Header ===== */
-.expander-header {
-    font-weight: 600;
-    color: #2563eb;
-    cursor: pointer;
-}
-
-/* ===== Close Button ===== */
-.close-btn {
-    float: right;
-    background: #ef4444;
-    color: white;
-    border-radius: 50%;
-    width: 22px;
-    height: 22px;
-    text-align: center;
-    line-height: 22px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-/* ===== Sidebar ===== */
-section[data-testid="stSidebar"] {
-    background: #ffffff;
-    border-right: 1px solid #e5e7eb;
-}
-
-/* ===== Scrollbar ===== */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #c7d2fe;
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #a5b4fc;
-}
-
+body { background-color: #121212; color: #E0E0E0; }
+.stTextArea textarea { background-color: #1e1e1e; color: #E0E0E0; }
+.stButton>button { background-color: #2e2e2e; color: #fff; }
+.skeleton-cell {height: 18px; margin:5px 0; background: linear-gradient(90deg,#2a2a2a 25%,#3a3a3a 37%,#2a2a2a 63%); background-size:400% 100%; animation: shimmer 2.5s infinite; border-radius:4px;}
+@keyframes shimmer {0% {background-position:100% 0;} 100% {background-position:-100% 0;}}
+.report-card {background-color:#1f1f1f; padding:12px; margin-bottom:8px; border-radius:8px;}
+.highlight { background-color: #ff4d4d; border-radius: 3px; padding: 1px 3px; }
+.progress-bar { background-color: #3a3a3a; border-radius:5px; overflow:hidden; margin-top:5px; height:15px; }
+.progress-fill { background-color:#ff4d4d; height:100%; }
+.expander-header {font-weight:bold; cursor:pointer; }
+.close-btn {float:right; color:#fff; background:#ff4d4d; border-radius:50%; width:20px; height:20px; text-align:center; line-height:20px; font-weight:bold; cursor:pointer;}
 </style>
 """, unsafe_allow_html=True)
-
 
 # ================== HELPERS ==================
 def highlight_words(text, words):
@@ -381,8 +254,3 @@ with right_col:
 
 st.markdown("---")
 st.caption("🎓 FYP – AI-Based Depression Detection | Click to expand report details")
-
-
-
-
-
