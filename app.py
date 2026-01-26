@@ -43,6 +43,7 @@ body::before {
 }
 
 /* ---------- GLASSMORPHISM PANELS ---------- */
+/* Apply styling to all containers */
 .stContainer,
 .stExpander,
 .report-card,
@@ -54,6 +55,21 @@ div[data-testid="stVerticalBlock"] > div {
     border: 1px solid rgba(255,255,255,0.08);
     box-shadow: 0 8px 32px rgba(0,0,0,0.45);
     padding: 14px;
+    margin-bottom: 10px;
+}
+
+/* TARGET ONLY THE FIRST BAR: This removes styling from the top-most container */
+div[data-testid="stVerticalBlock"] > div:first-child {
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+}
+
+/* Ensure images inside that first container don't get forced backgrounds */
+div[data-testid="stVerticalBlock"] > div:first-child * {
+    background: none !important;
 }
 
 /* ---------- TEXT AREA ---------- */
