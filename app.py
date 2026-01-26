@@ -5,6 +5,7 @@ import time
 import json
 import os
 import re
+import base64
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
@@ -12,26 +13,137 @@ from sklearn.metrics import accuracy_score
 from utils import clean_text
 
 # ================== PAGE CONFIG ==================
-st.set_page_config(page_title="AI Depression Detection", layout="wide")
+st.set_page_config(page_title="AI Depression Detection", page_icon="logo.png", layout="wide")
 
 REPORT_FILE = "reports.json"
 
 # ================== CSS ==================
 st.markdown("""
 <style>
-body { background-color: #121212; color: #E0E0E0; }
-.stTextArea textarea { background-color: #1e1e1e; color: #E0E0E0; }
-.stButton>button { background-color: #2e2e2e; color: #fff; }
-.skeleton-cell {height: 18px; margin:5px 0; background: linear-gradient(90deg,#2a2a2a 25%,#3a3a3a 37%,#2a2a2a 63%); background-size:400% 100%; animation: shimmer 2.5s infinite; border-radius:4px;}
-@keyframes shimmer {0% {background-position:100% 0;} 100% {background-position:-100% 0;}}
-.report-card {background-color:#1f1f1f; padding:12px; margin-bottom:8px; border-radius:8px;}
-.highlight { background-color: #ff4d4d; border-radius: 3px; padding: 1px 3px; }
-.progress-bar { background-color: #3a3a3a; border-radius:5px; overflow:hidden; margin-top:5px; height:15px; }
-.progress-fill { background-color:#ff4d4d; height:100%; }
-.expander-header {font-weight:bold; cursor:pointer; }
-.close-btn {float:right; color:#fff; background:#ff4d4d; border-radius:50%; width:20px; height:20px; text-align:center; line-height:20px; font-weight:bold; cursor:pointer;}
+
+/* ---------- GLOBAL BACKGROUND ---------- */
+body {
+    background: radial-gradient(
+        circle at top left,
+        #0f172a 0%,
+        #020617 45%,
+        #000000 100%
+    );
+    color: #E5E7EB;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at 80% 20%, rgba(56,189,248,0.06), transparent 40%),
+        radial-gradient(circle at 20% 80%, rgba(139,92,246,0.05), transparent 40%);
+    z-index: -1;
+}
+
+/* ---------- GLASSMORPHISM PANELS ---------- */
+.stContainer,
+.stExpander,
+.report-card,
+div[data-testid="stVerticalBlock"] > div {
+    background: rgba(17, 25, 40, 0.55) !important;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+    padding: 14px;
+}
+
+/* ---------- TEXT AREA ---------- */
+.stTextArea textarea {
+    background: rgba(2, 6, 23, 0.7);
+    color: #E5E7EB;
+    border-radius: 12px;
+    border: 1px solid rgba(148,163,184,0.25);
+}
+
+.stTextArea textarea:focus {
+    border-color: #38BDF8;
+    box-shadow: 0 0 8px rgba(56,189,248,0.35);
+}
+
+/* ---------- FUTURISTIC BUTTONS ---------- */
+.stButton > button {
+    background: linear-gradient(135deg, #020617, #111827);
+    color: #E5E7EB;
+    border: 1px solid rgba(56,189,248,0.35);
+    border-radius: 12px;
+    padding: 0.6em 1.4em;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: all 0.3s ease;
+}
+
+.stButton > button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 12px rgba(56,189,248,0.45);
+    border-color: #38BDF8;
+}
+
+.stButton > button:active {
+    transform: scale(0.97);
+}
+
+/* ---------- SKELETON LOADER ---------- */
+.skeleton-cell {
+    height: 18px;
+    margin: 6px 0;
+    background: linear-gradient(
+        90deg,
+        #020617 25%,
+        #1e293b 37%,
+        #020617 63%
+    );
+    background-size: 400% 100%;
+    animation: shimmer 2.5s infinite;
+    border-radius: 6px;
+}
+
+@keyframes shimmer {
+    0% { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+}
+
+/* ---------- PROGRESS BAR ---------- */
+.stProgress > div > div {
+    background: linear-gradient(90deg, #38BDF8, #8B5CF6);
+    box-shadow: 0 0 8px rgba(56,189,248,0.6);
+}
+
+/* ---------- HIGHLIGHT WORDS ---------- */
+.highlight {
+    background: rgba(239,68,68,0.85);
+    border-radius: 4px;
+    padding: 1px 4px;
+    color: #fff;
+}
+
+/* ---------- EXPANDER HEADER ---------- */
+summary {
+    font-weight: 600;
+    color: #E5E7EB;
+}
+
+/* ---------- DELETE / DANGER BUTTON ---------- */
+button[kind="secondary"] {
+    border-color: rgba(239,68,68,0.5) !important;
+}
+
+button[kind="secondary"]:hover {
+    box-shadow: 0 0 10px rgba(239,68,68,0.6) !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
+
+
 
 # ================== HELPERS ==================
 def highlight_words(text, words):
@@ -106,6 +218,33 @@ def save_reports(reports):
 
 if 'reports' not in st.session_state:
     st.session_state['reports'] = load_reports()
+
+
+
+
+
+
+# --- Encode logo to base64 for inline HTML ---
+def get_base64_logo(path):
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+logo_base64 = get_base64_logo("logo.png")  # folder me logo.png hona chahiye
+
+# --- Display logo at top center with glow effect ---
+st.markdown(f"""
+<div style="display:flex; justify-content:center; align-items:center; margin-bottom:15px; 
+            background: none !important; border: none !important; box-shadow: none !important; padding:0 !important;">
+    <img src="data:image/png;base64,{logo_base64}" 
+         alt="Logo" 
+         style="width:120px; height:auto; border-radius:50%; 
+                box-shadow:0 0 15px #38BDF8, 0 0 25px #8B5CF6, 0 0 35px #F472B6;
+                transition: transform 0.3s ease;">
+</div>
+""", unsafe_allow_html=True)
+
+
+
 
 # ================== HEADER ==================
 st.title("AI-Based Depression Detection")
