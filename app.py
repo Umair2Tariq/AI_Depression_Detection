@@ -327,7 +327,7 @@ with left_col:
             # --- DOWNLOAD LOGIC ---
             csv = df.to_csv(index=False).encode('utf-8')
             st.download_button(
-                label="📥 Download Processed CSV",
+                label="📥 Download",
                 data=csv,
                 file_name='Processed_Data.csv',
                 mime='text/csv',
@@ -426,4 +426,5 @@ with right_col:
 
 st.markdown("---")
 st.caption("🎓 FYP – AI-Based Depression Detection")
+
 
