@@ -5,6 +5,7 @@ import time
 import json
 import os
 import re
+from utils import clean_text
 import base64
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
@@ -15,32 +16,75 @@ from sklearn.metrics import accuracy_score
 st.set_page_config(page_title="AI Depression Detection", page_icon="logo.png", layout="wide")
 REPORT_FILE = "reports.json"
 
+# ================== BACKGROUND IMAGE ==================
+with open("bg.jpg", "rb") as f:
+    encoded = base64.b64encode(f.read()).decode()
+
+
 # ================== CSS ==================
-st.markdown("""
+st.markdown(f"""
 <style>
-/* FORCE STREAMLIT DARK */
-html, body, [data-testid="stApp"] {
-    background-color: #020617 !important;
-    color: #E5E7EB !important;
-}
+.stApp {{
+    background-image: url("data:image/jpg;base64,{encoded}");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}}
 
-/* OVERRIDE STREAMLIT LIGHT MODE */
-[data-theme="light"] {
-    background-color: #020617 !important;
-    color: #E5E7EB !important;
-}
 
-/* EVERYTHING ELSE */
+body {{
+    background: radial-gradient(circle at top left, #0f172a 0%, #020617 45%, #000000 100%);
+    color: #E5E7EB;
+}}
+
+body::before {{
+    content: "";
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at 80% 20%, rgba(56,189,248,0.06), transparent 40%),
+        radial-gradient(circle at 20% 80%, rgba(139,92,246,0.05), transparent 40%);
+    z-index: -1;
+}}
+
 .stContainer,
 .stExpander,
-div[data-testid="stVerticalBlock"] > div {
+.report-card,
+div[data-testid="stVerticalBlock"] > div {{
     background: rgba(17, 25, 40, 0.55) !important;
-    color: #E5E7EB !important;
-}
-/* ---------- ALL BUTTONS (DARK STYLE) ---------- */
-.stButton > button,
-button[kind="primary"],
-button[kind="secondary"] {
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+    padding: 14px;
+}}
+
+div[data-testid="stVerticalBlock"] > div:first-child {{
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+}}
+
+div[data-testid="stVerticalBlock"] > div:first-child * {{
+    background: none !important;
+}}
+
+.stTextArea textarea {{
+    background: rgba(2, 6, 23, 0.7);
+    color: #E5E7EB;
+    border-radius: 12px;
+    border: 1px solid rgba(148,163,184,0.25);
+}}
+
+.stTextArea textarea:focus {{
+    border-color: #38BDF8;
+    box-shadow: 0 0 8px rgba(56,189,248,0.35);
+}}
+
+.stButton > button {{
     background: linear-gradient(135deg, #020617, #111827);
     color: #E5E7EB;
     border: 1px solid rgba(56,189,248,0.35);
@@ -48,45 +92,76 @@ button[kind="secondary"] {
     padding: 0.6em 1.4em;
     font-weight: 600;
     letter-spacing: 0.3px;
-    transition: all 0.25s ease-in-out;
-}
+    transition: all 0.3s ease;
+}}
 
-/* Hover effect for all buttons */
-.stButton > button:hover,
-button[kind="primary"]:hover,
-button[kind="secondary"]:hover {
-    background: linear-gradient(135deg, #111827, #1f2937);
-    border-color: #38BDF8;
-    box-shadow: 0 0 10px rgba(56,189,248,0.35);
+.stButton > button:hover {{
     transform: translateY(-1px);
-}
-
-/* Active/click effect */
-.stButton > button:active {
-    transform: scale(0.97);
-}
-
-/* ---------- FILE UPLOADER / BROWSE BUTTON ---------- */
-div[data-testid="stFileUploader"] button {
-    background: #020617;
-    color: #E5E7EB;
-    border: 1px solid rgba(148,163,184,0.25);
-    border-radius: 12px;
-    padding: 0.5em 1.2em;
-    font-weight: 600;
-}
-
-/* Hover effect for file uploader button */
-div[data-testid="stFileUploader"] button:hover {
-    background: #111827;
+    box-shadow: 0 0 12px rgba(56,189,248,0.45);
     border-color: #38BDF8;
-    box-shadow: 0 0 10px rgba(56,189,248,0.35);
-}
-            
+}}
+
+.stButton > button:active {{
+    transform: scale(0.97);
+}}
+
+.skeleton-cell {{
+    height: 18px;
+    margin: 6px 0;
+    background: linear-gradient(90deg, #020617 25%, #1e293b 37%, #020617 63%);
+    background-size: 400% 100%;
+    animation: shimmer 2.5s infinite;
+    border-radius: 6px;
+}}
+
+@keyframes shimmer {{
+    0% {{ background-position: 100% 0; }}
+    100% {{ background-position: -100% 0; }}
+}}
+
+.stProgress > div > div {{
+    background: linear-gradient(90deg, #38BDF8, #8B5CF6);
+    box-shadow: 0 0 8px rgba(56,189,248,0.6);
+}}
+
+.highlight {{
+    background-color: rgba(239,68,68,0.85);
+    border-radius: 4px;
+    padding: 1px 4px;
+    color: #ff0000;
+    font-weight: bold;
+}}
+
+summary {{
+    font-weight: 600;
+    color: #E5E7EB;
+}}
+
+button[kind="secondary"] {{
+    border-color: rgba(239,68,68,0.5) !important;
+}}
+
+button[kind="secondary"]:hover {{
+    box-shadow: 0 0 10px rgba(239,68,68,0.6) !important;
+}}
+
+.st-emotion-cache-zy6yx3 {{
+    width: 100% !important;
+    padding: 3.5rem 3rem 10rem !important;
+    max-width: initial !important;
+    min-width: auto !important;
+}}
+
+#upload-dataset-optional,
+#report-history,
+#analyze-new-text {{
+    font-size: 2.02rem !important;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    opacity: 0.9;
+}}
 </style>
 """, unsafe_allow_html=True)
-
-
 
 # ================== HELPERS ==================
 # ----------------- DEPRESSION WORD EXTRACTION -----------------
@@ -239,26 +314,28 @@ with left_col:
         placeholder.empty()
         st.success("Dataset loaded successfully")
 
-        # ---------- SHOW FIRST 5 ROWS FULL WIDTH ----------
-        st.dataframe(data.head(), use_container_width=True)
+        # CLEAN TEXT COLUMN
+        data["clean_text"] = data["text"].apply(clean_text)
 
-        # ---------- FULL SCREEN MODAL BUTTON ----------
-        # ---------- FULL SCREEN MODAL BUTTON ----------
-        # ---------- FULL SCREEN DATASET BUTTON ----------
-        if st.button("🔍 View Full Dataset"):
-            st.markdown("### Full Dataset View")
-            st.dataframe(data, use_container_width=True)
+    
 
+        # ---------- NEW WINDOW (DIALOG) FIX ----------
+        @st.dialog("Full Dataset View", width="large")
+        def show_full_data_window(df):
+            st.write("Browse the complete processed dataset below:")
+            st.dataframe(df, use_container_width=True, height=400)
+            if st.button("Close"):
+                st.rerun()
 
-
-
+        if st.button("🔍 View Full Preprocessed Dataset"):
+            show_full_data_window(data[["text", "clean_text", "label"]])
 
         # ---------- TRAIN MODEL BUTTON ----------
         if st.button("🚀 Train Model"):
             with st.spinner("Training model..."):
                 time.sleep(1)
                 X_train, X_test, y_train, y_test = train_test_split(
-                    data["text"], data["label"], test_size=0.2, random_state=42
+                    data["clean_text"], data["label"], test_size=0.2, random_state=42
                 )
                 vectorizer = TfidfVectorizer(max_features=7000, ngram_range=(1,2))
                 X_train_vec = vectorizer.fit_transform(X_train)
@@ -283,7 +360,7 @@ with left_col:
             st.error("❌ Train the model first")
             st.stop()
         if user_text.strip():
-            cleaned = user_text.lower()
+            cleaned = clean_text(user_text)
             vec = vectorizer.transform([cleaned])
             base_prob = model.predict_proba(vec)[0][1]*100
             dep_words = extract_depression_words(cleaned)
@@ -291,7 +368,7 @@ with left_col:
             # ---------- POSITIVE WORDS ----------
             positive_words = [
                 "happy","blessed","excited","fun","love","smile","yay","awesome","amazing","joy",
-                "grateful","best day","good vibes","lit","😍","😂","😎","✨","🥰","💖","🥳","💯","😁","😃"
+                "grateful","best day","good vibes","lit","red_heart","face_with_tears_of_joy","smiling_face","sparkles"
             ]
 
             # ---------- SCORE CALCULATION ----------
