@@ -329,7 +329,7 @@ with left_col:
             st.download_button(
                 label="📥 Download Processed CSV",
                 data=csv,
-                file_name='processed_depression_data.csv',
+                file_name='Processed_Data.csv',
                 mime='text/csv',
             )
             # ----------------------
@@ -426,3 +426,4 @@ with right_col:
 
 st.markdown("---")
 st.caption("🎓 FYP – AI-Based Depression Detection")
+
