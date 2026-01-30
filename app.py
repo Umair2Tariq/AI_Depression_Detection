@@ -322,8 +322,20 @@ with left_col:
         # ---------- NEW WINDOW (DIALOG) FIX ----------
         @st.dialog("Full Dataset View", width="large")
         def show_full_data_window(df):
-            st.write("Browse the complete processed dataset below:")
+            st.write("Browse and download the complete processed dataset below:")
+            
+            # --- DOWNLOAD LOGIC ---
+            csv = df.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="📥 Download Processed CSV",
+                data=csv,
+                file_name='processed_depression_data.csv',
+                mime='text/csv',
+            )
+            # ----------------------
+
             st.dataframe(df, use_container_width=True, height=400)
+            
             if st.button("Close"):
                 st.rerun()
 
